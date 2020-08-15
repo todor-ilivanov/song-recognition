@@ -30,7 +30,7 @@ if not os.path.exists(caches_folder):
 def session_cache_path():
     return caches_folder + session.get('uuid')
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
     if not session.get('uuid'):
         # Step 1. Visitor is unknown, give random ID
@@ -52,44 +52,37 @@ def index():
 
     # Step 4. Signed in, display data
     spotify = spotipy.Spotify(auth_manager=auth_manager)
+
+    ## Upload photos
+    if request.method == 'POST':
+        uploaded_files = request.files.getlist("file[]")
+        for file in uploaded_files:
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                pprint.pprint("file uploaded")
+
+        ## Add to playlist
+        for filename in os.listdir(UPLOAD_FOLDER):
+            add_track(f'{UPLOAD_FOLDER}/{filename}')
+            
     return f'<h2>Hi {spotify.me()["display_name"]}, ' \
-           f'<small><a href="/sign_out">[sign out]<a/></small></h2>' \
-           f'<a href="/playlists">my playlists</a> | ' \
-           f'<a href="/currently_playing">currently playing</a> | ' \
-		   f'<a href="/current_user">me</a>' \
+        f'<small><a href="/sign_out">[sign out]<a/></small></h2>' \
+        f'<a href="/playlists">my playlists</a> | ' \
+        f'<a href="/currently_playing">currently playing</a> | ' \
+        f'<a href="/current_user">me</a>' \
+        '''
+        <h1>Upload new File</h1>
+        <form method=post enctype=multipart/form-data>
+            <input type="file" multiple="" name="file[]" >
+            <input type=submit value=Upload>
+        </form>
+        '''
 
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-@app.route('/upload', methods=['GET', 'POST'])
-def upload_file():
-    if request.method == 'POST':
-        # check if the post request has the file part
-        if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        file = request.files['file']
-        # if user does not select file, browser also
-        # submit an empty part without filename
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            pprint.pprint("file uploaded")
-            
-    return '''
-    <!doctype html>
-    <title>Upload new File</title>
-    <h1>Upload new File</h1>
-    <form method=post enctype=multipart/form-data>
-      <input type=file name=file>
-      <input type=submit value=Upload>
-    </form>
-    '''
 
 
 @app.route('/playlists')
@@ -173,29 +166,22 @@ def get_playlist_names():
 def search_track_id(track_name):
     sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
     first_result = sp.search(track_name)['tracks']['items'][0]
-    pprint.pprint(first_result['id'])
+    #pprint.pprint(first_result['id'])
     return first_result['id']
 
 
-@app.route('/add_track')
-def add_track():
-    if request.args.get('name'):
-        track_name = request.args.get('name')
-        #track_name = extract_song_name('./song1.png')
-        track_id = search_track_id(track_name)
-        playlist_id = create_playlist()
+def add_track(screenshot_path):
+    track_name = extract_song_name(screenshot_path)
+    track_id = search_track_id(track_name)
+    playlist_id = create_playlist()
 
-        auth_manager = spotipy.oauth2.SpotifyOAuth(cache_path=session_cache_path())
-        if not auth_manager.get_cached_token():
-            return redirect('/')
+    auth_manager = spotipy.oauth2.SpotifyOAuth(cache_path=session_cache_path())
+    if not auth_manager.get_cached_token():
+        return redirect('/')
 
-        sp = spotipy.Spotify(auth_manager=auth_manager)
-        sp.playlist_add_items(playlist_id, [track_id])
-
-        return "Song added."
-    else:
-        # TODO: Handle error properly
-        return "No track name specified."
+    sp = spotipy.Spotify(auth_manager=auth_manager)
+    sp.playlist_add_items(playlist_id, [track_id])
+    pprint.pprint("Track added to playlist.")
 
 '''
 Following lines allow application to be run more conveniently with
