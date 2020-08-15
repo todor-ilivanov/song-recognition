@@ -1,20 +1,27 @@
-
 import os
-from flask import Flask, session, request, redirect
-from flask_session import Session
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
 import uuid
 import pprint
 import argparse
+
+from flask import Flask, session, request, redirect, send_from_directory, flash
+from flask_session import Session
+from werkzeug.utils import secure_filename
+
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+
+from vision import extract_song_name
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+UPLOAD_FOLDER = './uploads'
+PLAYLIST_NAME = 'dev#01234'
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(64)
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_FILE_DIR'] = './.flask_session/'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 Session(app)
-
-PLAYLIST_NAME = 'dev#01234'
 
 caches_folder = './.spotify_caches/'
 if not os.path.exists(caches_folder):
@@ -51,6 +58,40 @@ def index():
            f'<a href="/currently_playing">currently playing</a> | ' \
 		   f'<a href="/current_user">me</a>' \
 
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        file = request.files['file']
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            pprint.pprint("file uploaded")
+            
+    return '''
+    <!doctype html>
+    <title>Upload new File</title>
+    <h1>Upload new File</h1>
+    <form method=post enctype=multipart/form-data>
+      <input type=file name=file>
+      <input type=submit value=Upload>
+    </form>
+    '''
+
+
 @app.route('/playlists')
 def get_playlists():
     auth_manager = spotipy.oauth2.SpotifyOAuth(cache_path=session_cache_path())
@@ -59,6 +100,7 @@ def get_playlists():
 
     spotify = spotipy.Spotify(auth_manager=auth_manager)
     return spotify.current_user_playlists()
+
 
 @app.route('/currently_playing')
 def currently_playing():
@@ -92,10 +134,11 @@ def sign_out():
         print ("Error: %s - %s." % (e.filename, e.strerror))
     return redirect('/')
 
+
 @app.route('/create_playlist')
 def create_playlist():
     playlist_names = get_playlist_names()
-    #pprint.pprint(playlist_names)
+
     if PLAYLIST_NAME not in playlist_names:
         auth_manager = spotipy.oauth2.SpotifyOAuth(cache_path=session_cache_path())
         if not auth_manager.get_cached_token():
@@ -115,6 +158,7 @@ def create_playlist():
         print("Playlist already exists.")
         return get_playlist_id(PLAYLIST_NAME)
 
+
 def get_playlist_id(name):
     playlists = get_playlists()
     playlist = [pl for pl in playlists['items'] if pl['name'] == name][0]
@@ -132,17 +176,19 @@ def search_track_id(track_name):
     pprint.pprint(first_result['id'])
     return first_result['id']
 
+
 @app.route('/add_track')
 def add_track():
     if request.args.get('name'):
         track_name = request.args.get('name')
+        #track_name = extract_song_name('./song1.png')
         track_id = search_track_id(track_name)
         playlist_id = create_playlist()
 
         auth_manager = spotipy.oauth2.SpotifyOAuth(cache_path=session_cache_path())
         if not auth_manager.get_cached_token():
             return redirect('/')
-            
+
         sp = spotipy.Spotify(auth_manager=auth_manager)
         sp.playlist_add_items(playlist_id, [track_id])
 

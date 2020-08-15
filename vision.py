@@ -23,5 +23,5 @@ def extract_song_name(path):
 
     return song[5:].replace('by ', '')
 
-song_name = extract_song_name('./song.png')
-print(song_name)
+#song_name = extract_song_name('./song.png')
+#print(song_name)
