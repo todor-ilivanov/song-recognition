@@ -1,0 +1,5 @@
+secrets.json
+vision
+.flask_session
+.spotify_caches
+__pycache__
