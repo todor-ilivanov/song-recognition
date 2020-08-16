@@ -1,11 +1,9 @@
 import os
 import uuid
-import pprint
 import argparse
 
-from flask import Flask, session, request, redirect, send_from_directory, flash
+from flask import Flask, session, request, redirect
 from flask_session import Session
-from werkzeug.utils import secure_filename
 
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -13,14 +11,11 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from spotify_api import *
 from file_upload import *
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-UPLOAD_FOLDER = './uploads'
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(64)
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_FILE_DIR'] = './.flask_session/'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = './uploads'
 Session(app)
 
 caches_folder = './.spotify_caches/'
@@ -36,9 +31,11 @@ def index():
         # Step 1. Visitor is unknown, give random ID
         session['uuid'] = str(uuid.uuid4())
 
-    auth_manager = spotipy.oauth2.SpotifyOAuth(scope='user-read-currently-playing playlist-modify-private playlist-modify-public',
-                                                cache_path=session_cache_path(), 
-                                                show_dialog=True)
+    auth_manager = spotipy.oauth2.SpotifyOAuth(
+        scope='user-read-currently-playing playlist-modify-private playlist-modify-public', 
+        cache_path=session_cache_path(),
+        show_dialog=True
+    )
 
     if request.args.get("code"):
         # Step 3. Being redirected from Spotify auth page
@@ -56,16 +53,7 @@ def index():
     ## Upload photos
     if request.method == 'POST':
         uploaded_files = request.files.getlist("file[]")
-        for file in uploaded_files:
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                pprint.pprint("file uploaded")
-
-        ## Add to playlist
-        for filename in os.listdir(UPLOAD_FOLDER):
-            image_path = f'{UPLOAD_FOLDER}/{filename}'
-            add_track(session_cache_path(), image_path)
+        upload_files(uploaded_files, app.config['UPLOAD_FOLDER'], session_cache_path())
             
     return f'<h2>Hi {spotify.me()["display_name"]}, ' \
         f'<small><a href="/sign_out">[sign out]<a/></small></h2>' \
@@ -80,36 +68,22 @@ def index():
         </form>
         '''
 
-
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
 @app.route('/playlists')
 def get_playlists_route():
     return get_playlists(session_cache_path())
-
 
 @app.route('/currently_playing')
 def currently_playing_route():
     return currently_playing(session_cache_path())
 
-
 @app.route('/current_user')
 def current_user_route():
     return current_user(session_cache_path())
-
 
 @app.route('/sign_out')
 def sign_out():
     os.remove(session_cache_path())
     session.clear()
-    try:
-        # Remove the CACHE file (.cache-test) so that a new user can authorize.
-        os.remove(session_cache_path())
-    except OSError as e:
-        print ("Error: %s - %s." % (e.filename, e.strerror))
     return redirect('/')
 
 

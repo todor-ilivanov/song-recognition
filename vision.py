@@ -18,10 +18,8 @@ def extract_song_name(path):
                 response.error.message))
 
     texts = response.text_annotations
+    # TODO: Test and handle errors
     texts_descr = texts[0].description.split('\n')
     song = ''.join([text for text in texts_descr if "It's" in text])
 
     return song[5:].replace('by ', '')
-
-#song_name = extract_song_name('./song.png')
-#print(song_name)
