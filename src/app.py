@@ -14,11 +14,11 @@ from file_upload import *
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(64)
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_FILE_DIR'] = './.flask_session/'
-app.config['UPLOAD_FOLDER'] = './uploads'
+app.config['SESSION_FILE_DIR'] = '../.flask_session/'
+app.config['UPLOAD_FOLDER'] = '../uploads'
 Session(app)
 
-caches_folder = './.spotify_caches/'
+caches_folder = '../.spotify_caches/'
 if not os.path.exists(caches_folder):
     os.makedirs(caches_folder)
 

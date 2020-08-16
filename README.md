@@ -1,6 +1,6 @@
 Environment Variables that need to be set before running app:
 
-GOOGLE_APPLICATION_CREDENTIALS = "C:\Users\Todor\Desktop\starlord\secrets.json"
+GOOGLE_APPLICATION_CREDENTIALS = "C:\Users\Todor\Desktop\starlord\secrets\secrets.json"
 FLASK_ENV = "development"
 SPOTIPY_CLIENT_ID=
 SPOTIPY_CLIENT_SECRET=
