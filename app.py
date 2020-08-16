@@ -10,11 +10,11 @@ from werkzeug.utils import secure_filename
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
-from vision import extract_song_name
+from spotify_api import *
+from file_upload import *
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 UPLOAD_FOLDER = './uploads'
-PLAYLIST_NAME = 'dev#01234'
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(64)
@@ -64,7 +64,8 @@ def index():
 
         ## Add to playlist
         for filename in os.listdir(UPLOAD_FOLDER):
-            add_track(f'{UPLOAD_FOLDER}/{filename}')
+            image_path = f'{UPLOAD_FOLDER}/{filename}'
+            add_track(session_cache_path(), image_path)
             
     return f'<h2>Hi {spotify.me()["display_name"]}, ' \
         f'<small><a href="/sign_out">[sign out]<a/></small></h2>' \
@@ -86,34 +87,18 @@ def allowed_file(filename):
 
 
 @app.route('/playlists')
-def get_playlists():
-    auth_manager = spotipy.oauth2.SpotifyOAuth(cache_path=session_cache_path())
-    if not auth_manager.get_cached_token():
-        return redirect('/')
-
-    spotify = spotipy.Spotify(auth_manager=auth_manager)
-    return spotify.current_user_playlists()
+def get_playlists_route():
+    return get_playlists(session_cache_path())
 
 
 @app.route('/currently_playing')
-def currently_playing():
-    auth_manager = spotipy.oauth2.SpotifyOAuth(cache_path=session_cache_path())
-    if not auth_manager.get_cached_token():
-        return redirect('/')
-    spotify = spotipy.Spotify(auth_manager=auth_manager)
-    track = spotify.current_user_playing_track()
-    if not track is None:
-        return track
-    return "No track currently playing."
+def currently_playing_route():
+    return currently_playing(session_cache_path())
 
 
 @app.route('/current_user')
-def current_user():
-    auth_manager = spotipy.oauth2.SpotifyOAuth(cache_path=session_cache_path())
-    if not auth_manager.get_cached_token():
-        return redirect('/')
-    spotify = spotipy.Spotify(auth_manager=auth_manager)
-    return spotify.current_user()
+def current_user_route():
+    return current_user(session_cache_path())
 
 
 @app.route('/sign_out')
@@ -127,61 +112,6 @@ def sign_out():
         print ("Error: %s - %s." % (e.filename, e.strerror))
     return redirect('/')
 
-
-@app.route('/create_playlist')
-def create_playlist():
-    playlist_names = get_playlist_names()
-
-    if PLAYLIST_NAME not in playlist_names:
-        auth_manager = spotipy.oauth2.SpotifyOAuth(cache_path=session_cache_path())
-        if not auth_manager.get_cached_token():
-            return redirect('/')
-        spotify = spotipy.Spotify(auth_manager=auth_manager)
-        user_id = spotify.me()['id']
-        response = spotify.user_playlist_create(user=user_id, 
-            name=PLAYLIST_NAME, 
-            public=True, 
-            description="Songs recognized from screenshots are added to this playlist."
-        )
-        print(f'Playlist {PLAYLIST_NAME} created.')
-        # TODO: handle errors
-        return response['id']
-    else:
-        # TODO: Handle properly
-        print("Playlist already exists.")
-        return get_playlist_id(PLAYLIST_NAME)
-
-
-def get_playlist_id(name):
-    playlists = get_playlists()
-    playlist = [pl for pl in playlists['items'] if pl['name'] == name][0]
-    pprint.pprint(playlist)
-    return playlist['id']
-
-def get_playlist_names():
-    playlists = get_playlists()
-    playlist_names = [pl['name'] for pl in playlists['items']]
-    return playlist_names
-
-def search_track_id(track_name):
-    sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials())
-    first_result = sp.search(track_name)['tracks']['items'][0]
-    #pprint.pprint(first_result['id'])
-    return first_result['id']
-
-
-def add_track(screenshot_path):
-    track_name = extract_song_name(screenshot_path)
-    track_id = search_track_id(track_name)
-    playlist_id = create_playlist()
-
-    auth_manager = spotipy.oauth2.SpotifyOAuth(cache_path=session_cache_path())
-    if not auth_manager.get_cached_token():
-        return redirect('/')
-
-    sp = spotipy.Spotify(auth_manager=auth_manager)
-    sp.playlist_add_items(playlist_id, [track_id])
-    pprint.pprint("Track added to playlist.")
 
 '''
 Following lines allow application to be run more conveniently with
