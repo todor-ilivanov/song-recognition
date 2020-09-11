@@ -2,7 +2,7 @@
 import os
 from werkzeug.utils import secure_filename
 
-from spotify_api import add_track
+from spotify_api import SpotifyAPI
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
@@ -20,5 +20,6 @@ def upload_files(uploaded_files, upload_folder, cache_path):
     ## Add to playlist
     for filename in os.listdir(upload_folder):
         image_path = f'{upload_folder}/{filename}'
-        add_track(cache_path, image_path)
+        spotify_api = SpotifyAPI(cache_path)
+        spotify_api.add_track(image_path)
         # delete from storage?

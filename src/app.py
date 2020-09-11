@@ -8,7 +8,7 @@ from flask_session import Session
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
-from spotify_api import *
+from spotify_api import SpotifyAPI
 from file_upload import *
 
 app = Flask(__name__)
@@ -70,15 +70,18 @@ def index():
 
 @app.route('/playlists')
 def get_playlists_route():
-    return get_playlists(session_cache_path())
+    spotify_api = SpotifyAPI(session_cache_path())
+    return spotify_api.get_playlists()
 
 @app.route('/currently_playing')
 def currently_playing_route():
-    return currently_playing(session_cache_path())
+    spotify_api = SpotifyAPI(session_cache_path())
+    return spotify_api.currently_playing()
 
 @app.route('/current_user')
 def current_user_route():
-    return current_user(session_cache_path())
+    spotify_api = SpotifyAPI(session_cache_path())
+    return spotify_api.current_user()
 
 @app.route('/sign_out')
 def sign_out():
