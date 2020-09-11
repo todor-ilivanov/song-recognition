@@ -16,9 +16,9 @@ def upload_files(uploaded_files, upload_folder, cache_path):
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(upload_folder, filename))
-            #pprint.pprint("file uploaded")
 
     ## Add to playlist
     for filename in os.listdir(upload_folder):
         image_path = f'{upload_folder}/{filename}'
         add_track(cache_path, image_path)
+        # delete from storage?

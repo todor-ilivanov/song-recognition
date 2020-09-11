@@ -1,25 +1,47 @@
-def extract_song_name(path):
-    """Detects text in the file."""
-    from google.cloud import vision
-    import io
-    client = vision.ImageAnnotatorClient()
+import re
+from google.cloud import vision
+import io
 
-    with io.open(path, 'rb') as image_file:
-        content = image_file.read()
+class VisionAPI:
 
-    image = vision.types.Image(content=content)
+    client = None
 
-    response = client.text_detection(image=image)
+    def __init__(self):
+        self.client = vision.ImageAnnotatorClient()
 
-    if response.error.message:
-        raise Exception(
-            '{}\nFor more info on error messages, check: '
-            'https://cloud.google.com/apis/design/errors'.format(
-                response.error.message))
+    def request(self, path):
+        """Detects text in the file."""
 
-    texts = response.text_annotations
-    # TODO: Test and handle errors
-    texts_descr = texts[0].description.split('\n')
-    song = ''.join([text for text in texts_descr if "It's" in text])
+        with io.open(path, 'rb') as image_file:
+            content = image_file.read()
 
-    return song[5:].replace('by ', '')
+        image = vision.types.Image(content=content)
+        response = self.client.text_detection(image=image)
+
+        return response
+
+    # TODO move outside of this class?
+    def extract_track_name(self, response):
+        if response.error.message:
+            raise Exception(
+                '{}\nFor more info on error messages, check: '
+                'https://cloud.google.com/apis/design/errors'.format(
+                    response.error.message))
+
+        if len(response.text_annotations) == 0:
+            return None
+
+        texts = response.text_annotations
+        full_text = texts[0].description.split('\n')
+        # TODO: make this more robust
+        regex = '(It\'s|That one\'s)\s(.+)\sby\s(.+)'
+        song = None
+
+        for text in full_text:
+            regex_result = re.search(regex, text)
+            if regex_result:
+                song = regex_result.group(2) + ' ' + regex_result.group(3)
+                print("*****Recognized song: " + song)
+                break
+
+        return song 

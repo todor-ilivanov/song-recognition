@@ -3,3 +3,4 @@ starlord
 .flask_session
 .spotify_caches
 __pycache__
+uploads
