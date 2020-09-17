@@ -20,3 +20,6 @@ First:
 
 Then:
 flask run -p 8080
+
+To run tests:
+pytest -W ignore::DeprecationWarning

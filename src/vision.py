@@ -1,6 +1,6 @@
 import re
-from google.cloud import vision
 import io
+from google.cloud import vision
 
 class VisionAPI:
 
@@ -34,7 +34,7 @@ class VisionAPI:
         texts = response.text_annotations
         full_text = texts[0].description.split('\n')
         # TODO: make this more robust
-        regex = '(It\'s|That one\'s)\s(.+)\sby\s(.+)'
+        regex = '(It\'s|That one\'s|That\'s)\s(.+)\sby\s(.+)'
         song = None
 
         for text in full_text:

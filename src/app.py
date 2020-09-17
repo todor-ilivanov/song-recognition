@@ -8,14 +8,13 @@ from flask_session import Session
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
-from spotify_api import SpotifyAPI
-from file_upload import *
+from . import spotify_api
+from . import file_upload
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(64)
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_FILE_DIR'] = '../.flask_session/'
-app.config['UPLOAD_FOLDER'] = '../uploads'
 Session(app)
 
 caches_folder = '../.spotify_caches/'
@@ -53,7 +52,8 @@ def index():
     ## Upload photos
     if request.method == 'POST':
         uploaded_files = request.files.getlist("file[]")
-        upload_files(uploaded_files, app.config['UPLOAD_FOLDER'], session_cache_path())
+        file_uploader = file_upload.FileUploader()
+        file_uploader.upload_files(uploaded_files, session_cache_path())
             
     return f'<h2>Hi {spotify.me()["display_name"]}, ' \
         f'<small><a href="/sign_out">[sign out]<a/></small></h2>' \
@@ -70,18 +70,18 @@ def index():
 
 @app.route('/playlists')
 def get_playlists_route():
-    spotify_api = SpotifyAPI(session_cache_path())
-    return spotify_api.get_playlists()
+    s_api = spotify_api.SpotifyAPI(session_cache_path())
+    return s_api.get_playlists()
 
 @app.route('/currently_playing')
 def currently_playing_route():
-    spotify_api = SpotifyAPI(session_cache_path())
-    return spotify_api.currently_playing()
+    s_api = spotify_api.SpotifyAPI(session_cache_path())
+    return s_api.currently_playing()
 
 @app.route('/current_user')
 def current_user_route():
-    spotify_api = SpotifyAPI(session_cache_path())
-    return spotify_api.current_user()
+    s_api = spotify_api.SpotifyAPI(session_cache_path())
+    return s_api.current_user()
 
 @app.route('/sign_out')
 def sign_out():

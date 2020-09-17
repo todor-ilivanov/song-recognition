@@ -1,25 +1,35 @@
-
 import os
 from werkzeug.utils import secure_filename
 
-from spotify_api import SpotifyAPI
+from . import spotify_api
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+class FileUploader:
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+    UPLOAD_FOLDER = '../uploads'
+    UNSUCCESSFUL_FOLDER = '../unsuccessful_images'
 
+    def is_allowed_file(self, filename):
+        return '.' in filename and \
+               filename.rsplit('.', 1)[1].lower() in self.ALLOWED_EXTENSIONS
 
-def upload_files(uploaded_files, upload_folder, cache_path):
-    for file in uploaded_files:
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(upload_folder, filename))
+    def upload_files(self, uploaded_files, cache_path):
+        s_api = spotify_api.SpotifyAPI(cache_path)
 
-    ## Add to playlist
-    for filename in os.listdir(upload_folder):
-        image_path = f'{upload_folder}/{filename}'
-        spotify_api = SpotifyAPI(cache_path)
-        spotify_api.add_track(image_path)
-        # delete from storage?
+        if not os.path.exists(self.UPLOAD_FOLDER):
+            os.mkdir(self.UPLOAD_FOLDER)
+
+        if not os.path.exists(self.UNSUCCESSFUL_FOLDER):
+            os.mkdir(self.UNSUCCESSFUL_FOLDER)
+
+        for file in uploaded_files:
+            if file and self.is_allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                image_path = os.path.join(self.UPLOAD_FOLDER, filename)
+                file.save(image_path)
+                try:
+                    s_api.add_track(image_path)
+                    os.remove(image_path)
+                except: # save to errors folder for inspection
+                    file.save(os.path.join(self.UNSUCCESSFUL_FOLDER, filename))
+                    os.remove(image_path)
