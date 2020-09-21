@@ -6,13 +6,7 @@ SPOTIPY_CLIENT_ID=
 SPOTIPY_CLIENT_SECRET=
 SPOTIPY_REDIRECT_URI="http://localhost:8080/"
 
-Dependencies:
-
-google-cloud-vision
-spotipy
-flask
-
-Uses a virtual env "starlord" with flask installed.
+Uses a virtual env "starlord" with the necessary dependencies installed.
 Ensure to activate before running the app.
 
 First:
@@ -22,4 +16,5 @@ Then:
 flask run -p 8080
 
 To run tests:
+cd test
 pytest -W ignore::DeprecationWarning

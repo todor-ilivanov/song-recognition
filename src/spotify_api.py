@@ -8,17 +8,15 @@ from . import vision
 
 class SpotifyAPI:
 
-    auth_manager = None
     client = None
     PLAYLIST_NAME = 'discoveries v0.1-test'
         
-    def __init__(self, cache_path):
-        self.auth_manager = spotipy.oauth2.SpotifyOAuth(cache_path=cache_path)
-        self.has_auth_token(self.auth_manager)
-        self.client = spotipy.Spotify(auth_manager=self.auth_manager)
+    def __init__(self, auth_manager):
+        self.has_auth_token(auth_manager)
+        self.client = spotipy.Spotify(auth_manager=auth_manager)
 
     def has_auth_token(self, auth_manager):
-        if not self.auth_manager.get_cached_token():
+        if not auth_manager.get_cached_token():
             return redirect('/')
     
     def currently_playing(self):
@@ -47,7 +45,6 @@ class SpotifyAPI:
     def get_playlist_id(self, name):
         playlists = self.get_playlists()
         playlist = [pl for pl in playlists['items'] if pl['name'] == name][0]
-        # pprint.pprint(playlist)
         return playlist['id']
 
     def create_playlist(self, name):

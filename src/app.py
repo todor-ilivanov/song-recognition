@@ -14,10 +14,10 @@ from . import file_upload
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(64)
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_FILE_DIR'] = '../.flask_session/'
+app.config['SESSION_FILE_DIR'] = './.flask_session/'
 Session(app)
 
-caches_folder = '../.spotify_caches/'
+caches_folder = './.spotify_caches/'
 if not os.path.exists(caches_folder):
     os.makedirs(caches_folder)
 
@@ -47,20 +47,30 @@ def index():
         return f'<h2><a href="{auth_url}">Sign in</a></h2>'
 
     # Step 4. Signed in, display data
-    spotify = spotipy.Spotify(auth_manager=auth_manager)
-
-    ## Upload photos
-    if request.method == 'POST':
-        uploaded_files = request.files.getlist("file[]")
-        file_uploader = file_upload.FileUploader()
-        file_uploader.upload_files(uploaded_files, session_cache_path())
+    session["spotify"] = spotify_api.SpotifyAPI(auth_manager)
             
-    return f'<h2>Hi {spotify.me()["display_name"]}, ' \
+    return f'<div><h2>Hi {session["spotify"].current_user()["display_name"]}, ' \
         f'<small><a href="/sign_out">[sign out]<a/></small></h2>' \
         f'<a href="/playlists">my playlists</a> | ' \
         f'<a href="/currently_playing">currently playing</a> | ' \
-        f'<a href="/current_user">me</a>' \
+        f'<a href="/current_user">me</a><div>' \
         '''
+        <br />
+        <div>
+        <a href=upload><button class=grey style="height:75px;width:150px">Upload Image for Recognition</button></a>
+        </div>
+        '''
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload_image():
+
+    if request.method == 'POST':
+        uploaded_files = request.files.getlist("file[]")
+        file_uploader = file_upload.FileUploader()
+        file_uploader.upload_files(uploaded_files, session["spotify"])
+        return redirect('/')
+
+    return '''
         <h1>Upload new File</h1>
         <form method=post enctype=multipart/form-data>
             <input type="file" multiple="" name="file[]" >
@@ -68,20 +78,18 @@ def index():
         </form>
         '''
 
+
 @app.route('/playlists')
 def get_playlists_route():
-    s_api = spotify_api.SpotifyAPI(session_cache_path())
-    return s_api.get_playlists()
+    return session["spotify"].get_playlists()
 
 @app.route('/currently_playing')
 def currently_playing_route():
-    s_api = spotify_api.SpotifyAPI(session_cache_path())
-    return s_api.currently_playing()
+    return session["spotify"].currently_playing()
 
 @app.route('/current_user')
 def current_user_route():
-    s_api = spotify_api.SpotifyAPI(session_cache_path())
-    return s_api.current_user()
+    return session["spotify"].current_user()
 
 @app.route('/sign_out')
 def sign_out():

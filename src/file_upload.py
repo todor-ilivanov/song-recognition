@@ -13,8 +13,7 @@ class FileUploader:
         return '.' in filename and \
                filename.rsplit('.', 1)[1].lower() in self.ALLOWED_EXTENSIONS
 
-    def upload_files(self, uploaded_files, cache_path):
-        s_api = spotify_api.SpotifyAPI(cache_path)
+    def upload_files(self, uploaded_files, spotify_api):
 
         if not os.path.exists(self.UPLOAD_FOLDER):
             os.mkdir(self.UPLOAD_FOLDER)
@@ -28,7 +27,7 @@ class FileUploader:
                 image_path = os.path.join(self.UPLOAD_FOLDER, filename)
                 file.save(image_path)
                 try:
-                    s_api.add_track(image_path)
+                    spotify_api.add_track(image_path)
                     os.remove(image_path)
                 except: # save to errors folder for inspection
                     file.save(os.path.join(self.UNSUCCESSFUL_FOLDER, filename))
