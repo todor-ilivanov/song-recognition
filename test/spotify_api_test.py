@@ -1,7 +1,7 @@
 import pytest
 import unittest
 from unittest.mock import MagicMock, Mock
-from src.spotify_api import SpotifyAPI
+from src.spotify_api import SpotifyAPI, SpotifyApiError
 from test_stubs import *
 import spotipy
 
@@ -29,9 +29,9 @@ class SpotifyAPITests(unittest.TestCase):
         assert response == "Current user"
 
     def test_current_user_failure(self):
-        spotify_api.client.current_user = Mock(side_effect=Exception)
+        spotify_api.client.current_user = Mock(side_effect=SpotifyApiError)
 
-        with pytest.raises(Exception) as e:    
+        with pytest.raises(SpotifyApiError) as e:    
             response = spotify_api.current_user()
 
         assert e.value.args[0] == "Error getting current user."
@@ -55,9 +55,9 @@ class SpotifyAPITests(unittest.TestCase):
         assert response == "User's playlists"
 
     def test_get_playlists_failure(self):
-        spotify_api.client.current_user_playlists = Mock(side_effect=Exception)
+        spotify_api.client.current_user_playlists = Mock(side_effect=SpotifyApiError)
 
-        with pytest.raises(Exception) as e:    
+        with pytest.raises(SpotifyApiError) as e:    
             response = spotify_api.get_playlists()
 
         assert e.value.args[0] == "Error finding playlist."
@@ -83,9 +83,9 @@ class SpotifyAPITests(unittest.TestCase):
         assert playlist_id == 123
 
     def test_create_playlist_error(self):
-        spotify_api.client.user_playlist_create = Mock(side_effect=Exception)
+        spotify_api.client.user_playlist_create = Mock(side_effect=SpotifyApiError)
         
-        with pytest.raises(Exception) as e:    
+        with pytest.raises(SpotifyApiError) as e:    
             playlist_id = spotify_api.create_playlist("pl3")
 
         assert e.value.args[0] == "Error creating playlist."
@@ -96,9 +96,9 @@ class SpotifyAPITests(unittest.TestCase):
         assert track_id == 123
 
     def test_search_track_id_failure(self):
-        spotify_api.client.search = Mock(side_effect=Exception)
+        spotify_api.client.search = Mock(side_effect=SpotifyApiError)
         
-        with pytest.raises(Exception) as e:    
+        with pytest.raises(SpotifyApiError) as e:    
             track_id = spotify_api.search_track_id("track1")
 
         assert e.value.args[0] == "Error looking up track name."
@@ -109,9 +109,9 @@ class SpotifyAPITests(unittest.TestCase):
         assert response == "Random Song by Random Band added to playlist."
 
     def test_add_track_error(self):
-        spotify_api.client.playlist_add_items = Mock(side_effect=Exception)
+        spotify_api.client.playlist_add_items = Mock(side_effect=SpotifyApiError)
 
-        with pytest.raises(Exception) as e:    
+        with pytest.raises(SpotifyApiError) as e:    
             response = spotify_api.add_track(TEST_IMAGE_PATH)
 
         assert e.value.args[0] == "Error adding track to playlist."
@@ -119,7 +119,7 @@ class SpotifyAPITests(unittest.TestCase):
     def test_add_track_no_track_name(self):
         spotify_api.make_vision_request = MagicMock(return_value=None)
 
-        with pytest.raises(Exception) as e:    
+        with pytest.raises(SpotifyApiError) as e:    
             response = spotify_api.add_track(TEST_IMAGE_PATH)
 
         assert e.value.args[0] == "No song found in the image."

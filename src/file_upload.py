@@ -1,34 +1,48 @@
 import os
+import shutil
 from werkzeug.utils import secure_filename
 
-from . import spotify_api
+from src.spotify_api import SpotifyAPI, SpotifyApiError
+from src.vision import VisionApiError
 
 class FileUploader:
 
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-    UPLOAD_FOLDER = '../uploads'
-    UNSUCCESSFUL_FOLDER = '../unsuccessful_images'
+
+    def __init__(self, upload_folder, unsuccessful_folder):
+        self.upload_folder = upload_folder
+        self.unsuccessful_folder = unsuccessful_folder
+
 
     def is_allowed_file(self, filename):
         return '.' in filename and \
-               filename.rsplit('.', 1)[1].lower() in self.ALLOWED_EXTENSIONS
+               filename.rsplit('.', 1)[1].lower() in self.ALLOWED_EXTENSIONS       
 
-    def upload_files(self, uploaded_files, spotify_api):
 
-        if not os.path.exists(self.UPLOAD_FOLDER):
-            os.mkdir(self.UPLOAD_FOLDER)
+    def set_up_directories(self):
+        if not os.path.exists(self.upload_folder):
+            os.mkdir(self.upload_folder)
 
-        if not os.path.exists(self.UNSUCCESSFUL_FOLDER):
-            os.mkdir(self.UNSUCCESSFUL_FOLDER)
+        if not os.path.exists(self.unsuccessful_folder):
+            os.mkdir(self.unsuccessful_folder)
+
+
+    def create_file_path(self, dir_name, filename):
+        return os.path.join(dir_name, filename)
+
+
+    def upload_files(self, uploaded_files):
+
+        self.set_up_directories()
 
         for file in uploaded_files:
-            if file and self.is_allowed_file(file.filename):
+            if not self.is_allowed_file(file.filename):
+                raise ValueError('File not supported.')
+
+            if file:
                 filename = secure_filename(file.filename)
-                image_path = os.path.join(self.UPLOAD_FOLDER, filename)
+                image_path = self.create_file_path(self.upload_folder, filename) 
                 file.save(image_path)
-                try:
-                    spotify_api.add_track(image_path)
-                    os.remove(image_path)
-                except: # save to errors folder for inspection
-                    file.save(os.path.join(self.UNSUCCESSFUL_FOLDER, filename))
-                    os.remove(image_path)
+
+        # clean up uploads folder
+        #shutil.rmtree(self.UPLOAD_FOLDER)

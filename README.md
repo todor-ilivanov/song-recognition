@@ -16,5 +16,4 @@ Then:
 flask run -p 8080
 
 To run tests:
-cd test
 pytest -W ignore::DeprecationWarning

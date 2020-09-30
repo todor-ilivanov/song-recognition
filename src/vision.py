@@ -23,7 +23,7 @@ class VisionAPI:
     # TODO move outside of this class?
     def extract_track_name(self, response):
         if response.error.message:
-            raise Exception(
+            raise VisionApiError(
                 '{}\nFor more info on error messages, check: '
                 'https://cloud.google.com/apis/design/errors'.format(
                     response.error.message))
@@ -33,7 +33,6 @@ class VisionAPI:
 
         texts = response.text_annotations
         full_text = texts[0].description.split('\n')
-        # TODO: make this more robust
         regex = '(It\'s|That one\'s|That\'s)\s(.+)\sby\s(.+)'
         song = None
 
@@ -45,3 +44,11 @@ class VisionAPI:
                 break
 
         return song 
+
+class VisionApiError(Exception):
+
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return f'Spotify API Error: {self.message}'

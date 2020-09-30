@@ -1,7 +1,7 @@
 import pytest
 import unittest
 from unittest.mock import MagicMock, Mock
-from src.vision import VisionAPI
+from src.vision import VisionAPI, VisionApiError
 from test_stubs import *
 
 
@@ -23,13 +23,13 @@ class VisionAPITests(unittest.TestCase):
 
     def test_extract_track_name_error(self):
         expected_response = AnnotateImageResponse(None)
-        expected_response.error = Error('Could not process image.')
+        expected_response.error = VisionApiError('Could not process image.')
         expected_error_msg = '{}\nFor more info on error messages, check: https://cloud.google.com/apis/design/errors'.format(
                         expected_response.error.message)
 
         vision_api.client.text_detection = MagicMock(return_value=expected_response)
 
-        with pytest.raises(Exception) as e:    
+        with pytest.raises(VisionApiError) as e:    
             response = vision_api.request(TEST_IMAGE_PATH)
             track_name = vision_api.extract_track_name(response)
 

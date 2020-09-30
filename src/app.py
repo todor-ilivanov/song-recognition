@@ -1,15 +1,16 @@
 import os
 import uuid
 import argparse
+import json
 
-from flask import Flask, session, request, redirect
+from flask import Flask, session, request, redirect, render_template
 from flask_session import Session
 
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
-from . import spotify_api
-from . import file_upload
+from src.spotify_api import SpotifyAPI, SpotifyApiError
+from src.file_upload import FileUploader
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(64)
@@ -47,37 +48,25 @@ def index():
         return f'<h2><a href="{auth_url}">Sign in</a></h2>'
 
     # Step 4. Signed in, display data
-    session["spotify"] = spotify_api.SpotifyAPI(auth_manager)
-            
-    return f'<div><h2>Hi {session["spotify"].current_user()["display_name"]}, ' \
-        f'<small><a href="/sign_out">[sign out]<a/></small></h2>' \
-        f'<a href="/playlists">my playlists</a> | ' \
-        f'<a href="/currently_playing">currently playing</a> | ' \
-        f'<a href="/current_user">me</a><div>' \
-        '''
-        <br />
-        <div>
-        <a href=upload><button class=grey style="height:75px;width:150px">Upload Image for Recognition</button></a>
-        </div>
-        '''
+    session["spotify"] = SpotifyAPI(auth_manager)
+    current_user = session["spotify"].current_user()["display_name"]
+                
+    return render_template('index.html', user=current_user)
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_image():
 
-    if request.method == 'POST':
+    upload_folder = './uploads'
+    unsuccessful_folder = './unsuccessful_images'
+
+    if request.method == 'POST': #TODO Handle exceptions
         uploaded_files = request.files.getlist("file[]")
-        file_uploader = file_upload.FileUploader()
-        file_uploader.upload_files(uploaded_files, session["spotify"])
+        file_uploader = FileUploader(upload_folder, unsuccessful_folder)
+        file_uploader.upload_files(uploaded_files)
+        session["spotify"].add_all_from_dir(upload_folder)
         return redirect('/')
 
-    return '''
-        <h1>Upload new File</h1>
-        <form method=post enctype=multipart/form-data>
-            <input type="file" multiple="" name="file[]" >
-            <input type=submit value=Upload>
-        </form>
-        '''
-
+    return render_template('file_upload.html')
 
 @app.route('/playlists')
 def get_playlists_route():
@@ -96,6 +85,10 @@ def sign_out():
     os.remove(session_cache_path())
     session.clear()
     return redirect('/')
+
+@app.errorhandler(SpotifyApiError)
+def handle_spotify_error(e):
+    return e.message
 
 
 '''
