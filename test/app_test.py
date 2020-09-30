@@ -43,18 +43,6 @@ class FlaskAppTests(unittest.TestCase):
         response = self.app.get('/upload', follow_redirects=True)
         assert response.status_code == 200
 
-    # def test_post_upload_page(self):
-    #     with patch('src.app.session', dict()) as session:
-    #         session['spotify'] = self.spotify_api
-    #         data = dict(files=[(io.BytesIO(b'abc'), 'test1.dasda'), (io.BytesIO(b'def'), 'test.dsad')])
-    #         response = self.app.post(
-    #             '/upload', data=data, follow_redirects=True,
-    #             content_type='multipart/form-data'
-    #         )
-
-    #         assert response.status_code == 2100
-            #assertRedirects
-
     def test_get_playlists_page(self):
         with patch('src.app.session', dict()) as session:
             session['spotify'] = self.spotify_api

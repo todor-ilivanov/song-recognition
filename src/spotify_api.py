@@ -1,5 +1,6 @@
 import pprint
 import os
+import shutil
 
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -108,10 +109,12 @@ class SpotifyAPI:
             try:
                 self.add_track(f'{upload_dir}/{file_path}')
             except SpotifyApiError as e:
-                # TODO some logging
+                # TODO proper logging
                 if e.message != "No song found in the image.":
                     raise
 
+        if os.path.exists(upload_dir):  #clean up uploads folder
+            shutil.rmtree(upload_dir)
 
     def make_vision_request(self, screenshot_path):
         vision_api = vision.VisionAPI()

@@ -43,6 +43,3 @@ class FileUploader:
                 filename = secure_filename(file.filename)
                 image_path = self.create_file_path(self.upload_folder, filename) 
                 file.save(image_path)
-
-        # clean up uploads folder
-        #shutil.rmtree(self.UPLOAD_FOLDER)

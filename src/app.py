@@ -59,7 +59,7 @@ def upload_image():
     upload_folder = './uploads'
     unsuccessful_folder = './unsuccessful_images'
 
-    if request.method == 'POST': #TODO Handle exceptions
+    if request.method == 'POST':
         uploaded_files = request.files.getlist("file[]")
         file_uploader = FileUploader(upload_folder, unsuccessful_folder)
         file_uploader.upload_files(uploaded_files)
