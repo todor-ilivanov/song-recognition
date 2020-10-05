@@ -3,7 +3,7 @@ import uuid
 import argparse
 import json
 
-from flask import Flask, session, request, redirect, render_template
+from flask import Flask, session, request, redirect, render_template, jsonify
 from flask_session import Session
 
 import spotipy
@@ -25,8 +25,15 @@ if not os.path.exists(caches_folder):
 def session_cache_path():
     return caches_folder + session.get('uuid')
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def index():
+    if session.get('spotify'):
+        return redirect('/home')
+    else:
+        return redirect('sign_in')
+
+@app.route('/sign_in')
+def sign_in():
     if not session.get('uuid'):
         # Step 1. Visitor is unknown, give random ID
         session['uuid'] = str(uuid.uuid4())
@@ -40,18 +47,31 @@ def index():
     if request.args.get("code"):
         # Step 3. Being redirected from Spotify auth page
         auth_manager.get_access_token(request.args.get("code"))
-        return redirect('/')
+        # init spotify client with credentials
+        session["spotify"] = SpotifyAPI(auth_manager)
+        return redirect('/home')
 
     if not auth_manager.get_cached_token():
         # Step 2. Display sign in link when no token
         auth_url = auth_manager.get_authorize_url()
-        return f'<h2><a href="{auth_url}">Sign in</a></h2>'
+        return redirect(auth_url)
+                   
+    return redirect('/home')
 
-    # Step 4. Signed in, display data
-    session["spotify"] = SpotifyAPI(auth_manager)
-    current_user = session["spotify"].current_user()["display_name"]
-                
-    return render_template('index.html', user=current_user)
+@app.route('/is_auth')
+def is_auth():
+    return jsonify(
+        is_auth = True if session.get('spotify') else False
+    )
+
+@app.route('/home')
+def home():
+    spotify_client = session.get('spotify')
+    if spotify_client:
+        current_user = spotify_client.current_user()["display_name"]   
+        return render_template('home.html', user=current_user)
+    else:
+        return redirect('/')
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_image():
@@ -64,7 +84,7 @@ def upload_image():
         file_uploader = FileUploader(upload_folder, unsuccessful_folder)
         file_uploader.upload_files(uploaded_files)
         session["spotify"].add_all_from_dir(upload_folder)
-        return redirect('/')
+        return redirect('/home')
 
     return render_template('file_upload.html')
 
