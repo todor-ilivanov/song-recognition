@@ -54,7 +54,7 @@ def sign_in():
     if not auth_manager.get_cached_token():
         # Step 2. Display sign in link when no token
         auth_url = auth_manager.get_authorize_url()
-        return redirect(auth_url)
+        return redirect(auth_url) # TODO try to create an endpoint that returns auth_url then try to redirect to it from React
                    
     return redirect('/home')
 
@@ -90,15 +90,15 @@ def upload_image():
 
 @app.route('/playlists')
 def get_playlists_route():
-    return session["spotify"].get_playlists()
+    return session.get('spotify').get_playlists()
 
 @app.route('/currently_playing')
 def currently_playing_route():
-    return session["spotify"].currently_playing()
+    return session.get('spotify').currently_playing()
 
 @app.route('/current_user')
 def current_user_route():
-    return session["spotify"].current_user()
+    return session.get('spotify').current_user()
 
 @app.route('/sign_out')
 def sign_out():

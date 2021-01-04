@@ -11,7 +11,7 @@ from . import vision
 class SpotifyAPI:
 
     client = None
-    PLAYLIST_NAME = 'discoveries v0.s2'
+    PLAYLIST_NAME = 'discoveries v0.2'
         
     def __init__(self, auth_manager):
         self.has_auth_token(auth_manager)

@@ -1,5 +1,5 @@
 secrets
-starlord
+starlord-venv
 src/.flask_session
 src/.spotify_caches
 __pycache__
