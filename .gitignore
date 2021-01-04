@@ -8,3 +8,4 @@ test/__pycache__
 .pytest_cache
 uploads
 unsuccessful_images
+.vscode
