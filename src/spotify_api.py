@@ -82,7 +82,7 @@ class SpotifyAPI:
             first_result = self.client.search(track_name)['tracks']['items'][0]
             return first_result['id']
         except:
-            raise SpotifyApiError("Error looking up track name.")
+            raise SpotifyApiError("Track id not found in Spotify when looking up name.")
 
 
     def add_track(self, screenshot_path):
@@ -109,12 +109,17 @@ class SpotifyAPI:
             try:
                 self.add_track(f'{upload_dir}/{file_path}')
             except SpotifyApiError as e:
-                # TODO proper logging
-                if e.message != "No song found in the image.":
-                    raise
+                # logs to heroku
+                # TODO show errors to user
+                print(e.message)
+        self.clean_up_uploads_folder(upload_dir)
 
-        if os.path.exists(upload_dir):  #clean up uploads folder
+
+
+    def clean_up_uploads_folder(self, upload_dir):
+        if os.path.exists(upload_dir): 
             shutil.rmtree(upload_dir)
+
 
     def make_vision_request(self, screenshot_path):
         vision_api = vision.VisionAPI()

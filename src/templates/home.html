@@ -5,6 +5,8 @@
     <a href="/current_user">me</a>
 <div>
 <br />
-<div>
-    <a href=upload><button class=grey style="height:75px;width:150px">Upload Image for Recognition</button></a>
-</div>
+<h1>Upload new File</h1>
+<form method=post enctype=multipart/form-data>
+    <input type="file" multiple="" name="file[]" >
+    <input type=submit value=Upload>
+</form>

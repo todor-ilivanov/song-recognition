@@ -33,15 +33,6 @@ class FlaskAppTests(unittest.TestCase):
 
         if os.path.exists(self.SPOTIFY_CACHE_TEST_PATH):
             shutil.rmtree(self.SPOTIFY_CACHE_TEST_PATH)
- 
-    def test_index(self):
-        tester = app.test_client()
-        response = self.app.get('/', follow_redirects=True)
-        assert response.status_code == 200
-
-    def test_get_upload_page(self):
-        response = self.app.get('/upload', follow_redirects=True)
-        assert response.status_code == 200
 
     def test_get_playlists_page(self):
         with patch('src.app.session', dict()) as session:

@@ -101,7 +101,7 @@ class SpotifyAPITests(unittest.TestCase):
         with pytest.raises(SpotifyApiError) as e:    
             track_id = spotify_api.search_track_id("track1")
 
-        assert e.value.args[0] == "Error looking up track name."
+        assert e.value.args[0] == "Track id not found in Spotify when looking up name."
 
     def test_add_track(self):
         response = spotify_api.add_track(TEST_IMAGE_PATH)

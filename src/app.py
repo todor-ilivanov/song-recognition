@@ -64,29 +64,25 @@ def is_auth():
         is_auth = True if session.get('spotify') else False
     )
 
-@app.route('/home')
+@app.route('/home', methods=['GET', 'POST'])
 def home():
     spotify_client = session.get('spotify')
     if spotify_client:
         current_user = spotify_client.current_user()["display_name"]   
+        upload_dir = './uploads'
+
+        if request.method == 'POST':
+            upload_submitted_files(request, upload_dir)
+            session["spotify"].add_all_from_dir(upload_dir)
+
         return render_template('home.html', user=current_user)
     else:
         return redirect('/')
 
-@app.route('/upload', methods=['GET', 'POST'])
-def upload_image():
-
-    upload_folder = './uploads'
-    unsuccessful_folder = './unsuccessful_images'
-
-    if request.method == 'POST':
-        uploaded_files = request.files.getlist("file[]")
-        file_uploader = FileUploader(upload_folder, unsuccessful_folder)
-        file_uploader.upload_files(uploaded_files)
-        session["spotify"].add_all_from_dir(upload_folder)
-        return redirect('/home')
-
-    return render_template('file_upload.html')
+def upload_submitted_files(request, upload_dir):
+    uploaded_files = request.files.getlist("file[]")
+    file_uploader = FileUploader(upload_dir)
+    file_uploader.upload_files(uploaded_files)
 
 @app.route('/playlists')
 def get_playlists_route():

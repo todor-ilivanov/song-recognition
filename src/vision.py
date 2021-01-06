@@ -20,7 +20,6 @@ class VisionAPI:
 
         return response
 
-    # TODO move outside of this class?
     def extract_track_name(self, response):
         if response.error.message:
             raise VisionApiError(

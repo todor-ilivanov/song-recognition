@@ -18,16 +18,12 @@ class FileMock:
 class FlaskAppTests(unittest.TestCase):
 
     upload_test_folder = './upload_test'
-    unsuccessful_test_folder = './unsuccessful_test'
 
-    file_uploader = FileUploader(upload_test_folder, unsuccessful_test_folder)
+    file_uploader = FileUploader(upload_test_folder)
 
     def tearDown(self):
         if os.path.exists(self.upload_test_folder):
             shutil.rmtree(self.upload_test_folder)
-
-        if os.path.exists(self.unsuccessful_test_folder):
-            shutil.rmtree(self.unsuccessful_test_folder)
 
 
     def test_is_allowed_file(self):
@@ -50,7 +46,3 @@ class FlaskAppTests(unittest.TestCase):
             self.file_uploader.upload_files(mock_files)
 
         assert e.value.args[0] == "File not supported."
-
-
-        
-            
