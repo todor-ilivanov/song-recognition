@@ -19,12 +19,9 @@
         <a href="/current_user">me</a>
         <br />
         <form method=post enctype=multipart/form-data>
-            <div class="btn-group" role="group">
-                <label class="btn btn-default">
-                    Browse Screenshots <input type="file" multiple="" name="file[]" hidden>
-                </label>
-                <input type="submit" value="Add to Playlist" class="btn btn-primary">
-            </div>
+            <label class="btn btn-default">
+                Add Songs to Playlist<input type="file" multiple="" name="file[]" onchange="form.submit()" hidden>
+            </label>
         </form>
     </div>
 
