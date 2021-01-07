@@ -5,6 +5,7 @@ import json
 
 from flask import Flask, session, request, redirect, render_template, jsonify
 from flask_session import Session
+from flask_bootstrap import Bootstrap
 
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -13,6 +14,7 @@ from src.spotify_api import SpotifyAPI, SpotifyApiError
 from src.file_upload import FileUploader
 
 app = Flask(__name__)
+Bootstrap(app)
 app.config['SECRET_KEY'] = os.urandom(64)
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_FILE_DIR'] = './.flask_session/'

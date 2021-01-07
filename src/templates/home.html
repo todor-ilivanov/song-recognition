@@ -1,12 +1,33 @@
-<div>
-    <h2>Hi {{user}}<small><a href="/sign_out">[sign out]</a></small></h2>
-    <a href="/playlists">my playlists</a>
-    <a href="/currently_playing">currently playing</a> 
-    <a href="/current_user">me</a>
-<div>
-<br />
-<h1>Upload new File</h1>
-<form method=post enctype=multipart/form-data>
-    <input type="file" multiple="" name="file[]" >
-    <input type=submit value=Upload>
-</form>
+{% extends "bootstrap/base.html" %}
+{% block title %}Starlord Song Recognition{% endblock %}
+
+<!-- {% block navbar %}
+<div class="navbar navbar-fixed-top">
+</div>
+{% endblock %} -->
+{% block styles %}
+{{super()}}
+<link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="col-lg-4 col-lg-offset-4 col-md-6 col-md-offset-3 col-xs-12">
+        <h2>Hi {{user}}<small><a href="/sign_out">[sign out]</a></small></h2>
+        <a href="/playlists">my playlists</a>
+        <a href="/currently_playing">currently playing</a> 
+        <a href="/current_user">me</a>
+        <br />
+        <form method=post enctype=multipart/form-data>
+            <div class="btn-group" role="group">
+                <label class="btn btn-default">
+                    Browse Screenshots <input type="file" multiple="" name="file[]" hidden>
+                </label>
+                <input type="submit" value="Add to Playlist" class="btn btn-primary">
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+
