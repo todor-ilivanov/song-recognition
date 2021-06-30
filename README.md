@@ -7,6 +7,9 @@ Workflow of the app:
 3. Create a playlist if it doesn't exist
 4. Add the track to the dedicated playlist
 
+## Deployed on Heroku
+Deployed at https://starlord-recognition.herokuapp.com/home
+
 ## Running the App
 1. Make sure you have the `virtualenv` package installed.
 2. Create the virtualenv
