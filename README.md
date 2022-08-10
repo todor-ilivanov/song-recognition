@@ -1,8 +1,12 @@
 # Starlord Recognition App
 A web application that generates a Spotify playlist based on a screenshot with a result from a Google query.
 
-Workflow of the app:
-1. Scan a provided screenshot or list of screenshots for the track name
+## Background
+
+I only built this as my refusal to download extra apps (Shazam in this case) on my very outdated and out-of-memory phone. Naturally, the most "practical" way to go was spent a few afternoons building this not-very-useful app!
+
+## Workflow
+1. Scan a provided screenshot or list of screenshots for the track name (currently not very robust)
 2. Find the track in Spotify
 3. Create a playlist if it doesn't exist
 4. Add the track to the dedicated playlist
@@ -23,3 +27,7 @@ Deployed at https://starlord-recognition.herokuapp.com/home
 ## Running Tests
 From the project directory, run: 
 `pytest -W ignore::DeprecationWarning`
+
+## TODO
+- UI is lacking (missing)
+- Google assistant responses might have changed. Update track name lookup to be more robust
